@@ -2,7 +2,7 @@
 (function () {
   "use strict";
 
-  const P = { tab: "filter" };
+  const P = { tab: "filter", query: "" };
 
   P.init = function () {
     document.getElementById("effectTabs").addEventListener("click", (e) => {
@@ -11,25 +11,39 @@
       U.$$("#effectTabs button").forEach((x) => x.classList.toggle("active", x === b));
       P.render();
     });
+    const si = document.getElementById("effectSearch");
+    if (si) {
+      si.addEventListener("input", () => { P.query = si.value.trim().toLowerCase(); P.render(); });
+    }
+    const sc = document.getElementById("effectSearchClear");
+    if (sc) sc.addEventListener("click", () => { if (si) si.value = ""; P.query = ""; P.render(); });
     App.on("select", P.render);
     App.on("project", P.render);
     P.render();
   };
 
+  function match(it) {
+    if (!P.query) return true;
+    const hay = (it.name + " " + (it.tags || "") + " " + (it.group || "")).toLowerCase();
+    return P.query.split(/\s+/).every((w) => hay.indexOf(w) >= 0);
+  }
+
   P.render = function () {
     const grid = document.getElementById("effectGrid");
     if (!grid) return;
     grid.innerHTML = "";
-    if (P.tab === "filter") renderGroups(grid, FXData.Filters, "filter");
-    else if (P.tab === "effect") renderGroups(grid, FXData.Effects, "effect");
+    if (P.tab === "filter") renderGroups(grid, FXData.Filters.filter(match), "filter");
+    else if (P.tab === "effect") renderGroups(grid, FXData.Effects.filter(match), "effect");
     else if (P.tab === "transition") renderTransitions(grid);
     else if (P.tab === "template") renderTemplates(grid);
     else renderText(grid);
   };
 
   function renderTemplates(grid) {
+    const list = FXData.Templates.filter(match);
     grid.appendChild(U.el("div", "fx-cat", "Template (klik untuk terapkan ke klip terpilih)"));
-    FXData.Templates.forEach((tpl) => {
+    if (!list.length) { grid.appendChild(U.el("div", "empty", "Tidak ada hasil.")); return; }
+    list.forEach((tpl) => {
       const el = U.el("div", "fx-item tpl");
       el.appendChild(U.el("div", "fx-thumb", tpl.icon));
       el.appendChild(U.el("div", "fx-name", tpl.name));
@@ -48,6 +62,7 @@
 
   function renderGroups(grid, list, kind) {
     const clip = App.selectedClip();
+    if (!list.length) { grid.appendChild(U.el("div", "empty", "Tidak ada hasil.")); return; }
     const groups = {};
     list.forEach((it) => { (groups[it.group] = groups[it.group] || []).push(it); });
     Object.keys(groups).forEach((g) => {
@@ -80,8 +95,10 @@
   }
 
   function renderTransitions(grid) {
+    const list = FXData.Transitions.filter(match);
     grid.appendChild(U.el("div", "fx-cat", "Transisi (diterapkan ke klip terpilih)"));
-    FXData.Transitions.forEach((tr) => {
+    if (!list.length) { grid.appendChild(U.el("div", "empty", "Tidak ada hasil.")); return; }
+    list.forEach((tr) => {
       const el = U.el("div", "fx-item tr");
       el.appendChild(U.el("div", "fx-thumb", tr.icon));
       el.appendChild(U.el("div", "fx-name", tr.name));
@@ -100,8 +117,10 @@
   }
 
   function renderText(grid) {
+    const list = FXData.TextPresets.filter(match);
     grid.appendChild(U.el("div", "fx-cat", "Teks (klik untuk tambah ke timeline)"));
-    FXData.TextPresets.forEach((tp) => {
+    if (!list.length) { grid.appendChild(U.el("div", "empty", "Tidak ada hasil.")); return; }
+    list.forEach((tp) => {
       const el = U.el("div", "fx-item tx");
       el.appendChild(U.el("div", "fx-thumb", tp.icon));
       el.appendChild(U.el("div", "fx-name", tp.name));

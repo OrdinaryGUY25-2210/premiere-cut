@@ -27,12 +27,30 @@
     for (let i = 0; i < sorted.length - 1; i++) {
       const a = sorted[i], b = sorted[i + 1];
       if (t >= a.t && t <= b.t) {
-        const p = (t - a.t) / (b.t - a.t || 1);
+        const lin = (t - a.t) / (b.t - a.t || 1);
+        const p = easeValue(K.getEase(clip, prop), lin);
         return a.v + (b.v - a.v) * p;
       }
     }
     return fallback;
   };
+
+  // easing antar-keyframe
+  const EASES = ["linear", "easeIn", "easeOut", "easeInOut", "hold"];
+  function easeValue(name, x) {
+    switch (name) {
+      case "easeIn": return x * x;
+      case "easeOut": return 1 - (1 - x) * (1 - x);
+      case "easeInOut": return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+      case "hold": return x < 1 ? 0 : 1;
+      default: return x;
+    }
+  }
+  K.EASES = EASES;
+  K.easeValue = easeValue;
+  K.getEase = function (clip, prop) { return (clip.keyframeEase && clip.keyframeEase[prop]) || "linear"; };
+  K.setEase = function (clip, prop, name) { if (!clip.keyframeEase) clip.keyframeEase = {}; clip.keyframeEase[prop] = name; };
+
 
   // set/update keyframe pada waktu t
   K.set = function (clip, prop, t, v) {

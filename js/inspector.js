@@ -61,6 +61,13 @@
       nav.title = "Hapus animasi (semua keyframe)";
       nav.addEventListener("click", () => { App.pushUndo(); Keyframes.clear(clip, prop); I.render(); apply(); });
       wrap.appendChild(nav);
+      const easeSel = document.createElement("select");
+      easeSel.className = "kf-ease";
+      easeSel.title = "Easing";
+      [["linear", "Linier"], ["easeIn", "Masuk"], ["easeOut", "Keluar"], ["easeInOut", "Masuk-Keluar"], ["hold", "Tahan"]].forEach((e) => easeSel.appendChild(new Option(e[1], e[0])));
+      easeSel.value = Keyframes.getEase(clip, prop);
+      easeSel.addEventListener("change", () => { App.pushUndo(); Keyframes.setEase(clip, prop, easeSel.value); apply(); });
+      wrap.appendChild(easeSel);
     }
     function updateVal(v) { valEl.textContent = fmt ? fmt(v) : v; }
     return wrap;
@@ -162,6 +169,13 @@
     gi.appendChild(sr);
     gi.appendChild(row("Posisi X", slider(clip.text.x, 0, 1, 0.01, (v) => { clip.text.x = v; apply(); }), clip.text.x.toFixed(2)));
     gi.appendChild(row("Posisi Y", slider(clip.text.y, 0, 1, 0.01, (v) => { clip.text.y = v; apply(); }), clip.text.y.toFixed(2)));
+    gi.appendChild(row("Line Height", slider(clip.text.lineHeight || 1.2, 0.8, 2.5, 0.05, (v) => { clip.text.lineHeight = v; apply(); }), (clip.text.lineHeight || 1.2).toFixed(2)));
+    gi.appendChild(row("Letter Spacing", slider(clip.text.letterSpacing || 0, -10, 40, 1, (v) => { clip.text.letterSpacing = v; apply(); }), clip.text.letterSpacing || 0));
+    const al = document.createElement("select");
+    [["center", "Tengah"], ["left", "Kiri"], ["right", "Kanan"]].forEach((a) => al.appendChild(new Option(a[1], a[0])));
+    al.value = clip.text.align || "center";
+    al.addEventListener("change", () => { clip.text.align = al.value; apply(); });
+    gi.appendChild(row("Perataan", al));
     return gi;
   }
 
@@ -176,6 +190,13 @@
     const dur = slider(clip.transition[which].duration, 0, 3, 0.1, (v) => { clip.transition[which].duration = v; apply(); });
     dur.style.flex = "1"; wrap.appendChild(dur);
     wrap.appendChild(U.el("span", "val", clip.transition[which].duration.toFixed(1) + "s"));
+    const es = document.createElement("select");
+    es.className = "kf-ease";
+    es.title = "Easing transisi";
+    [["linear", "Linier"], ["easeIn", "Masuk"], ["easeOut", "Keluar"], ["easeInOut", "Masuk-Keluar"]].forEach((e) => es.appendChild(new Option(e[1], e[0])));
+    es.value = clip.transition[which].ease || "linear";
+    es.addEventListener("change", () => { App.pushUndo(); clip.transition[which].ease = es.value; apply(); });
+    wrap.appendChild(es);
     return wrap;
   }
 
@@ -190,6 +211,15 @@
     box.appendChild(propRow(clip, "filter:" + f.id, "Intensitas", 0, 1, 0.01, () => f.intensity, (v) => f.intensity = v, (v) => Math.round(v * 100) + "%"));
     return box;
   }
+  function liveRow(label, min, max, step, get, set, fmt) {
+    const r = U.el("div", "ins-row");
+    r.appendChild(U.el("label", null, label));
+    const vEl = U.el("span", "val", fmt(get()));
+    const s = slider(get(), min, max, step, (v) => { set(v); apply(); vEl.textContent = fmt(v); });
+    r.appendChild(s); r.appendChild(vEl);
+    return r;
+  }
+
   function effectRow(clip, e, idx) {
     const def = FXData.Effects.find((x) => x.id === e.id);
     const box = U.el("div", "fx-added");
@@ -199,6 +229,13 @@
     del.addEventListener("click", () => { App.pushUndo(); clip.effects.splice(idx, 1); I.render(); apply(); });
     top.appendChild(del); box.appendChild(top);
     box.appendChild(propRow(clip, "effect:" + e.id, "Intensitas", 0, 1, 0.01, () => e.intensity, (v) => e.intensity = v, (v) => Math.round(v * 100) + "%"));
+    if (def && def.params && Object.keys(def.params).length) {
+      if (!e.params) e.params = FXData.effectParams(def);
+      Object.keys(def.params).forEach((k) => {
+        const pd = def.params[k];
+        box.appendChild(liveRow(pd.name, pd.min, pd.max, pd.step, () => e.params[k], (v) => { e.params[k] = v; }, (v) => (Math.round(v * 100) / 100)));
+      });
+    }
     return box;
   }
 

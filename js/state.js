@@ -27,11 +27,26 @@
     pxPerSec: 80,
     fps: 30,
     mediaEls: {},      // mediaId -> HTMLVideoElement|HTMLAudioElement|HTMLImageElement
+    mediaBlobs: {},    // mediaId -> File/Blob (disimpan ke IndexedDB)
     undoStack: [],
     redoStack: [],
     _listeners: {},
     _dragPayload: null,
   };
+
+  // pengaturan global yang bisa disesuaikan (flexibility)
+  App.defaultSettings = function () {
+    return {
+      snap: true, snapPx: 8,
+      undoLimit: 120,
+      bg: "#000000",
+      fitMode: "contain",          // contain | cover | stretch
+      autosave: true, autosaveMs: 20000,
+      captionLang: "id-ID", captionSize: 46,
+      previewQuality: 1,
+    };
+  };
+  App.settings = App.defaultSettings();
 
   App.defaults = {
     transform: defaultTransform,
@@ -111,6 +126,7 @@
       audio: defaultAudio(),
       transition: defaultTransition(),
       keyframes: {},
+      keyframeEase: {},
       mask: defaultMask(),
       chroma: defaultChroma(),
       filters: [],
@@ -129,7 +145,8 @@
   }
   App.pushUndo = function () {
     App.undoStack.push(snapshot());
-    if (App.undoStack.length > 100) App.undoStack.shift();
+    const lim = (App.settings && App.settings.undoLimit) || 120;
+    while (App.undoStack.length > lim) App.undoStack.shift();
     App.redoStack.length = 0;
     App.emit("history");
   };

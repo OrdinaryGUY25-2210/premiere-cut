@@ -64,12 +64,22 @@
       const def = FXData.Effects.find((x) => x.id === e.id);
       const iv = R.effectIntensity(clip, e, t);
       if (def && def.mod && iv > 0) {
-        const m = def.mod(t - clip.start, iv) || {};
+        const m = def.mod(t - clip.start, iv, FXData.resolveParams(def, e.params)) || {};
         scale *= m.scale || 1; scaleX *= m.scaleX || 1; scaleY *= m.scaleY || 1;
         dx += m.dx || 0; dy += m.dy || 0; rot += m.rot || 0;
       }
     });
     return { scale, scaleX, scaleY, dx, dy, rot };
+  }
+
+  function easeValue(name, x) {
+    switch (name) {
+      case "easeIn": return x * x;
+      case "easeOut": return 1 - (1 - x) * (1 - x);
+      case "easeInOut": return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+      case "hold": return x < 1 ? 0 : 1;
+      default: return x;
+    }
   }
 
   function transitionState(clip, t) {
@@ -78,11 +88,12 @@
     const tt = t - clip.start;
     const tr = clip.transition || {};
     const W = App.project.size.w, H = App.project.size.h;
-    if (tr.in && tr.in.type !== "none" && tr.in.duration > 0) applyEdge(st, tr.in.type, U.clamp(tt / tr.in.duration, 0, 1), true, W, H);
-    if (tr.out && tr.out.type !== "none" && tr.out.duration > 0) applyEdge(st, tr.out.type, U.clamp((dur - tt) / tr.out.duration, 0, 1), false, W, H);
+    if (tr.in && tr.in.type !== "none" && tr.in.duration > 0) applyEdge(st, tr.in.type, U.clamp(tt / tr.in.duration, 0, 1), true, W, H, tr.in.ease);
+    if (tr.out && tr.out.type !== "none" && tr.out.duration > 0) applyEdge(st, tr.out.type, U.clamp((dur - tt) / tr.out.duration, 0, 1), false, W, H, tr.out.ease);
     return st;
   }
-  function applyEdge(st, type, p, isIn, W, H) {
+  function applyEdge(st, type, p, isIn, W, H, ease) {
+    if (ease) p = easeValue(ease, U.clamp(p, 0, 1));
     switch (type) {
       case "fade": st.opacityMul *= p; break;
       case "dipBlack": st.opacityMul *= p; st.overlay = "rgba(0,0,0," + (1 - p).toFixed(3) + ")"; break;
@@ -101,7 +112,9 @@
 
   function containRect(mw, mh, fw, fh) {
     if (!mw || !mh) return { x: 0, y: 0, w: fw, h: fh };
-    const s = Math.min(fw / mw, fh / mh);
+    const mode = (App.settings && App.settings.fitMode) || "contain";
+    if (mode === "stretch") return { x: 0, y: 0, w: fw, h: fh };
+    const s = mode === "cover" ? Math.max(fw / mw, fh / mh) : Math.min(fw / mw, fh / mh);
     const w = mw * s, h = mh * s;
     return { x: (fw - w) / 2, y: (fh - h) / 2, w, h };
   }
@@ -253,23 +266,27 @@
     ctx.globalAlpha = U.clamp((T.opacity != null ? T.opacity : 1) * ts.opacityMul, 0, 1);
     const fontPx = tx.size || 72;
     ctx.font = (tx.italic ? "italic " : "") + (tx.bold ? "700 " : "400 ") + fontPx + "px " + (tx.font || "Inter") + ", sans-serif";
+    if ("letterSpacing" in ctx && tx.letterSpacing) ctx.letterSpacing = (tx.letterSpacing || 0) + "px";
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
     const lines = String(tx.content || "").split("\n");
-    const lh = fontPx * 1.2;
+    const lh = fontPx * (tx.lineHeight || 1.2);
     const cx = (tx.x != null ? tx.x : 0.5) * W + (T.x || 0) + ts.dx + et.dx;
     const cy = (tx.y != null ? tx.y : 0.5) * H + (T.y || 0) + ts.dy + et.dy;
     const scale = (T.scale || 1) * et.scale * ts.scaleMul;
     ctx.translate(cx, cy); ctx.rotate((T.rotation || 0) + et.rot); ctx.scale(scale * et.scaleX, scale * et.scaleY);
 
+    let maxW = 0; lines.forEach((ln) => { maxW = Math.max(maxW, ctx.measureText(ln).width); });
+    const align = tx.align || "center";
     if (tx.bg && tx.bg !== "transparent") {
-      let maxW = 0; lines.forEach((ln) => { maxW = Math.max(maxW, ctx.measureText(ln).width); });
       const padX = fontPx * 0.4, padY = fontPx * 0.28;
       ctx.fillStyle = tx.bg;
       ctx.fillRect(-maxW / 2 - padX, -(lines.length * lh) / 2 - padY, maxW + padX * 2, lines.length * lh + padY * 2);
     }
     ctx.fillStyle = tx.color || "#fff";
     if (tx.shadow) { ctx.shadowColor = "rgba(0,0,0,.65)"; ctx.shadowBlur = fontPx * 0.12; ctx.shadowOffsetY = fontPx * 0.04; }
-    lines.forEach((ln, i) => ctx.fillText(ln, 0, -((lines.length - 1) * lh) / 2 + i * lh));
+    ctx.textAlign = align === "left" ? "left" : align === "right" ? "right" : "center";
+    const x0 = align === "left" ? -maxW / 2 : align === "right" ? maxW / 2 : 0;
+    lines.forEach((ln, i) => ctx.fillText(ln, x0, -((lines.length - 1) * lh) / 2 + i * lh));
     ctx.restore();
   }
 
@@ -277,7 +294,7 @@
     const ctx = R.ctx, W = R.canvas.width, H = R.canvas.height;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.filter = "none"; ctx.globalAlpha = 1;
-    ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = (App.settings && App.settings.bg) || "#000"; ctx.fillRect(0, 0, W, H);
 
     const tracks = App.project.tracks;
     for (let i = tracks.length - 1; i >= 0; i--) {
@@ -301,7 +318,7 @@
         (clip.effects || []).forEach((e) => {
           const def = FXData.Effects.find((x) => x.id === e.id);
           const iv = R.effectIntensity(clip, e, t);
-          if (def && def.post && iv > 0) { try { def.post(ctx, W, H, localT, iv); } catch (err) {} }
+          if (def && def.post && iv > 0) { try { def.post(ctx, W, H, localT, iv, FXData.resolveParams(def, e.params)); } catch (err) {} }
         });
       });
     });

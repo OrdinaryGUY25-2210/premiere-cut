@@ -27,9 +27,12 @@
     <div class="menu" data-menu="help">Help</div>
   </nav>
   <div class="topbar-right">
+    <button id="btnSearch" title="Cari fitur / efek (Ctrl+K)">🔎 Cari</button>
+    <span class="sep"></span>
     <button id="btnUndo" title="Undo (Ctrl+Z)">↶</button>
     <button id="btnRedo" title="Redo (Ctrl+Y)">↷</button>
     <span class="sep"></span>
+    <button id="btnSettings" title="Pengaturan (Ctrl+,)">⚙</button>
     <button id="btnSave" title="Save Project (Ctrl+S)">Save</button>
     <button id="btnLoad" title="Load Project">Load</button>
     <button id="btnExportTop" class="accent" title="Export (Ctrl+E)">Export</button>
@@ -67,6 +70,10 @@
         </div>
       </div>
       <div class="panel-body">
+        <div class="fx-search">
+          <input id="effectSearch" type="search" placeholder="Cari filter, efek, transisi, template…" />
+          <button id="effectSearchClear" class="small" title="Bersihkan">✕</button>
+        </div>
         <div id="effectGrid" class="effect-grid"></div>
       </div>
     </section>
@@ -205,6 +212,50 @@
 </div>
 
 <input id="fileInput" type="file" multiple accept="video/*,audio/*,image/*" class="hidden" />
+
+<!-- ===================== COMMAND PALETTE (cari fitur) ===================== -->
+<div id="palette" class="palette hidden">
+  <div class="palette-box">
+    <div class="palette-search">
+      <span class="pal-ico">🔎</span>
+      <input id="paletteInput" type="text" autocomplete="off" spellcheck="false" placeholder="Cari fitur, efek, transisi, tindakan…" />
+      <kbd>Esc</kbd>
+    </div>
+    <div id="paletteList" class="palette-list"></div>
+    <div class="palette-foot">↑ ↓ pilih &nbsp;·&nbsp; Enter jalankan &nbsp;·&nbsp; Esc tutup</div>
+  </div>
+</div>
+
+<!-- ===================== SETTINGS MODAL ===================== -->
+<div id="settingsModal" class="modal hidden">
+  <div class="modal-card">
+    <div class="modal-head">Pengaturan</div>
+    <div class="modal-body" id="settingsBody"></div>
+    <div class="modal-foot">
+      <button id="setReset">Reset Bawaan</button>
+      <button id="setClose" class="accent">Selesai</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== LIVE CAPTION MODAL ===================== -->
+<div id="captionModal" class="modal hidden">
+  <div class="modal-card">
+    <div class="modal-head">Live Caption (Auto-Subtitle via Mikrofon)</div>
+    <div class="modal-body">
+      <label>Bahasa <select id="capLang"></select></label>
+      <label>Ukuran teks <input id="capSize" type="range" min="24" max="120" step="2" value="46" /></label>
+      <p class="hint">Tekan <b>Mulai</b>, lalu putar timeline dan bicarakan/pantulkan suara ke mikrofon. Setiap kalimat final otomatis dibuat jadi klip teks subtitle. Butuh browser Chrome/Edge & izin mikrofon.</p>
+      <div id="capInterim" class="cap-interim">Siap.</div>
+    </div>
+    <div class="modal-foot">
+      <button id="capStop" disabled>Stop</button>
+      <button id="capStart" class="accent">Mulai</button>
+      <button id="capClose">Tutup</button>
+    </div>
+  </div>
+</div>
+
 <script src="js/util.js"></script>
 <script src="js/state.js"></script>
 <script src="js/effects-data.js"></script>
@@ -219,6 +270,10 @@
 <script src="js/presets.js"></script>
 <script src="js/playback.js"></script>
 <script src="js/export.js"></script>
+<script src="js/idb.js"></script>
+<script src="js/speech.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/commands.js"></script>
 <script src="js/menus.js"></script>
 <script src="js/app.js"></script>
 </body>

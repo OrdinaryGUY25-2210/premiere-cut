@@ -19,6 +19,10 @@
       item("Simpan Proyek", "Ctrl+S", () => Menu.save()),
       item("Muat Proyek…", "Ctrl+O", () => Menu.load()),
       div(),
+      item("Simpan ke Browser", "Ctrl+Shift+S", () => IDB.save()),
+      item("Buka dari Browser", "Ctrl+Shift+O", () => IDB.load()),
+      div(),
+      item("Live Caption (Mikrofon)…", "", () => Speech.open()),
       item("Export Video…", "Ctrl+E", () => Exporter.open()),
     ],
     edit: [
@@ -53,6 +57,9 @@
     color: [item("Buka Lumetri Color", "", () => document.getElementById("colorPanel").scrollIntoView())],
     export: [item("Export Video…", "Ctrl+E", () => Exporter.open()), item("Simpan Proyek (.json)", "Ctrl+S", () => Menu.save())],
     help: [
+      item("Cari Fitur…", "Ctrl+K", () => Commands.show()),
+      item("Pengaturan…", "Ctrl+,", () => Settings.open()),
+      div(),
       item("Shortcut Keyboard", "", () => Menu.shortcuts()),
       item("Tentang PremiereCut", "", () => alert("PremiereCut — gabungan UX Adobe Premiere Pro + panel efek gaya CapCut.\nDibuat sebagai web app untuk pengujian.")),
     ],
@@ -63,6 +70,7 @@
     U.$$("#effectTabs button").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
     EffectsPanel.render();
   }
+  Menu.__switchTab = switchTab;
 
   Menu.init = function () {
     document.getElementById("mainMenus").addEventListener("click", (e) => {

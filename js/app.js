@@ -18,8 +18,19 @@
     Playback.init();
     Exporter.init();
     Menu.init();
+    Settings.init();
+    Speech.init();
+    Commands.init();
+    IDB.startAutosave();
     const expFrameBtn = document.getElementById("expFrame");
     if (expFrameBtn) expFrameBtn.addEventListener("click", () => { Renderer.exportFrame(); Exporter.close(); });
+
+    document.getElementById("btnSearch").addEventListener("click", () => Commands.show());
+    document.getElementById("btnSettings").addEventListener("click", () => Settings.open());
+    const capClose = document.getElementById("capClose");
+    if (capClose) capClose.addEventListener("click", () => Speech.close());
+    document.getElementById("setClose").addEventListener("click", () => Settings.close());
+    document.getElementById("setReset").addEventListener("click", () => Settings.reset());
 
     // transport
     document.getElementById("btnSplit").addEventListener("click", () => Timeline.splitAtPlayhead());
@@ -48,6 +59,11 @@
       const ctrl = e.ctrlKey || e.metaKey;
       if (ctrl) {
         const k = e.key.toLowerCase();
+        if (e.shiftKey && k === "s") { e.preventDefault(); IDB.save(); return; }
+        if (e.shiftKey && k === "o") { e.preventDefault(); IDB.load(); return; }
+        if (k === "k") { e.preventDefault(); Commands.toggle(); return; }
+        if (k === "p") { e.preventDefault(); Commands.toggle(); return; }
+        if (k === ",") { e.preventDefault(); Settings.open(); return; }
         if (k === "z") { e.preventDefault(); e.shiftKey ? App.redo() : App.undo(); return; }
         if (k === "y") { e.preventDefault(); App.redo(); return; }
         if (k === "s") { e.preventDefault(); Menu.save(); return; }
@@ -113,10 +129,20 @@
       const dur = App.sequenceDuration();
       const json = JSON.stringify(App.project).length;
       const px = Renderer.canvas.toDataURL().length;
+      // fitur baru: easing, parameter efek, palette, settings
+      Keyframes.setEase(clip, "scale", "easeInOut");
+      const easeVal = Keyframes.eval(clip, "scale", 1, 1).toFixed(3);
+      const resolved = FXData.resolveParams(FXData.Effects.find((x) => x.id === "vignette"), { size: 0.4 });
+      Commands.build();
+      Settings.render();
       out.push("media=" + App.project.media.length);
       out.push("vClips=" + vTrack.clips.length);
       out.push("cues=" + cues.length);
       out.push("kfScale@1=" + kfEval);
+      out.push("easeScale@1=" + easeVal);
+      out.push("fxParamSize=" + resolved.size);
+      out.push("cmds=" + Commands.all.length);
+      out.push("settings=" + (App.settings.snap ? "on" : "off"));
       out.push("seqDur=" + dur.toFixed(2));
       out.push("jsonBytes=" + json);
       out.push("canvasOK=" + (px > 1000));

@@ -39,6 +39,7 @@
       const existing = App.project.media.find((m) => m.name === file.name && (!m.url || m.url.startsWith("blob:")));
       if (existing) {
         existing.url = url; existing.type = type; existing.thumb = "";
+        App.mediaBlobs[existing.id] = file;
         M.probe(existing);
         App.status("Relink: " + file.name);
         return;
@@ -48,6 +49,7 @@
         duration: 0, width: 0, height: 0, thumb: "", hasAudio: type === "video" || type === "audio",
       };
       App.project.media.push(media);
+      App.mediaBlobs[media.id] = file;
       added++;
       M.probe(media);
     });
