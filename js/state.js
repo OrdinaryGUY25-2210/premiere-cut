@@ -4,7 +4,7 @@
 
   // -------- default properties helpers --------
   function defaultTransform() {
-    return { x: 0, y: 0, scale: 1, rotation: 0, opacity: 1, anchorX: 0.5, anchorY: 0.5 };
+    return { x: 0, y: 0, scale: 1, scaleX: 1, scaleY: 1, rotation: 0, opacity: 1, anchorX: 0.5, anchorY: 0.5, linkScale: true };
   }
   function defaultAudio() {
     return { volume: 1, muted: false, fadeIn: 0, fadeOut: 0 };

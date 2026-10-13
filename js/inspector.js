@@ -105,7 +105,9 @@
       gt.appendChild(propRow(clip, "scale", "Skala", 0.05, 4, 0.01, () => clip.transform.scale, (v) => clip.transform.scale = v, (v) => v.toFixed(2)));
       gt.appendChild(propRow(clip, "rotation", "Rotasi", -180, 180, 1, () => clip.transform.rotation, (v) => clip.transform.rotation = v, (v) => Math.round(v) + "°"));
       gt.appendChild(propRow(clip, "opacity", "Opacity", 0, 1, 0.01, () => clip.transform.opacity, (v) => clip.transform.opacity = v, (v) => Math.round(v * 100) + "%"));
-      ib.appendChild(gt);
+      // ratio
+      gt.appendChild(ratioRow(clip));
+
 
       const gs = group("Kecepatan");
       gs.appendChild(row("Speed", slider(clip.speed || 1, 0.25, 4, 0.05, (v) => { clip.speed = v; apply(); }, () => App.emit("project")), (clip.speed || 1).toFixed(2) + "x"));
@@ -308,3 +310,29 @@
 
   window.Inspector = I;
 })();
+
+function ratioRow(clip){
+  const wrap=U.el('div','ins-row');
+  wrap.appendChild(U.el('label',null,'Rasio'));
+  const box=U.el('div','ins-sub');
+  const sx=document.createElement('input'); sx.type='range'; sx.min=0.05; sx.max=4; sx.step=0.01; sx.value=(clip.transform.scaleX||1);
+  sx.addEventListener('pointerdown',function(){App.pushUndo()});
+  sx.addEventListener('input',function(){clip.transform.scaleX=+sx.value; if(clip.transform.linkScale!==false){clip.transform.scaleY=clip.transform.scaleX; clip.transform.scale=clip.transform.scaleX;} apply(); I.render();});
+  const sy=document.createElement('input'); sy.type='range'; sy.min=0.05; sy.max=4; sy.step=0.01; sy.value=(clip.transform.scaleY||1);
+  sy.addEventListener('pointerdown',function(){App.pushUndo()});
+  sy.addEventListener('input',function(){clip.transform.scaleY=+sy.value; if(clip.transform.linkScale!==false){clip.transform.scaleX=clip.transform.scaleY; clip.transform.scale=clip.transform.scaleY;} apply(); I.render();});
+  const lk=document.createElement('input'); lk.type='checkbox'; lk.checked=(clip.transform.linkScale!==false);
+  lk.addEventListener('change',function(){clip.transform.linkScale=lk.checked; apply();});
+  box.appendChild(sx); box.appendChild(U.el('span',null,'X'));
+  box.appendChild(sy); box.appendChild(U.el('span',null,'Y'));
+  box.appendChild(U.el('span',null,'Link')); box.appendChild(lk);
+  const sel=document.createElement('select');
+  [['Bebas','x'],['1:1','1:1'],['16:9','16:9'],['9:16','9:16'],['4:3','4:3'],['3:4','3:4'],['2:1','2:1'],['1:2','1:2'],['16:10','16:10'],['10:16','10:16'],['5:4','5:4'],['4:5','4:5'],['21:9','21:9']].forEach(function(x){sel.appendChild(new Option(x[0],x[1]));});
+  sel.value='x';
+  sel.addEventListener('change',function(){
+    if(sel.value==='x')return;
+    var p=sel.value.split(':'); var w=+p[0],h=+p[1]; var s=clip.transform.scale||1;
+    App.pushUndo(); clip.transform.scaleX=s*(w/h); clip.transform.scaleY=s; clip.transform.scale=s; I.render(); apply();
+  });
+  box.appendChild(sel); wrap.appendChild(box); return wrap;
+}

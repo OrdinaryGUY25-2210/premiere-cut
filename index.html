@@ -205,6 +205,12 @@
       <label>Kualitas (bitrate Mbps)
         <input id="expBitrate" type="number" min="1" max="50" value="12">
       </label>
+      <label>Format Output
+        <select id="expFormat">
+          <option value="webm">WebM</option>
+          <option value="mp4">MP4 (jika didukung browser)</option>
+        </select>
+      </label>
       <label class="chk"><input id="expIncludeAudio" type="checkbox" checked> Sertakan audio</label>
       <p class="hint">Export merekam preview secara real-time (durasi export ≈ durasi video). Format keluaran: <b>.webm</b>.</p>
       <div class="export-progress hidden" id="expProgressWrap">

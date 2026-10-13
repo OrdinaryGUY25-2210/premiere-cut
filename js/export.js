@@ -21,11 +21,17 @@
     document.getElementById("expProgressWrap").classList.add("hidden");
   };
 
-  X.pickMime = function () {
+  X.pickMimeFor = function (ext) {
+    const want = (ext || "webm").toLowerCase();
+    if (want === "mp4") {
+      const c = ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4;codecs=avc1.640028,mp4a.40.2", "video/mp4;codecs=h264,mp4a.40.2", "video/mp4"];
+      for (const m of c) if (window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m;
+    }
     const candidates = ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"];
     for (const m of candidates) if (window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m;
     return "";
   };
+  X.pickMime = function () { return X.pickMimeFor("webm"); };
 
   function ensureAudioGraph() {
     if (!App.audioCtx) App.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -48,8 +54,9 @@
     const fps = +document.getElementById("expFps").value;
     const bitrate = (+document.getElementById("expBitrate").value || 12) * 1e6;
     const withAudio = document.getElementById("expIncludeAudio").checked;
-    const mime = X.pickMime();
     if (!mime) { App.status("Browser tidak mendukung MediaRecorder."); return; }
+    const fmt = document.getElementById("expFormat");
+    X.expExt = fmt && fmt.value === "mp4" ? "mp4" : "webm";
 
     const exp = document.createElement("canvas");
     exp.width = W; exp.height = H;
@@ -64,9 +71,11 @@
       if (App.audioDest) App.audioDest.stream.getAudioTracks().forEach((tr) => stream.addTrack(tr));
     }
 
-    X.chunks = []; X.cancel = false;
+    X.recorder = null; X.chunks = []; X.cancel = false;
+    const mime = X.pickMimeFor(X.expExt || "webm");
+
     try {
-      X.recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: bitrate });
+      X.recorder = new MediaRecorder(stream, mime ? { mimeType: mime, videoBitsPerSecond: bitrate } : { videoBitsPerSecond: bitrate });
     } catch (e) {
       X.recorder = new MediaRecorder(stream);
     }
@@ -74,8 +83,9 @@
     X.recorder.onstop = () => {
       if (!X.cancel && X.chunks.length) {
         const blob = new Blob(X.chunks, { type: mime || "video/webm" });
-        U.download("premierecut-" + Date.now() + ".webm", blob);
-        App.status("Export selesai: " + (blob.size / 1048576).toFixed(1) + " MB");
+        const ext = X.expExt || "webm";
+        U.download("premierecut-" + Date.now() + "." + ext, blob);
+        App.status("Export selesai: " + (blob.size / 1048576).toFixed(1) + " MB (" + ext.toUpperCase() + ")");
       } else if (X.cancel) App.status("Export dibatalkan");
     };
 
