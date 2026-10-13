@@ -1,0 +1,16 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.log
+
+# build / cache
+node_modules/
+dist/
+.cache/
+
+# exported videos
+*.webm
+export/

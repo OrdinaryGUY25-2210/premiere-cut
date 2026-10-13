@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PremiereCut — Video Editor</title>
+<link rel="stylesheet" href="css/app.css" />
+<script>
+  window.__errors = [];
+  function __pushErr(msg){ window.__errors.push(msg); var s=document.getElementById("statusText"); if(s){ s.textContent="ERROR: "+msg; s.style.color="#e05656"; } document.title="PC_ERR|"+window.__errors.join(" | "); }
+  window.addEventListener("error", function(e){ __pushErr((e.message||"")+" @"+(e.filename||"").split("/").pop()+":"+(e.lineno||"")); });
+  window.addEventListener("unhandledrejection", function(e){ __pushErr("promise:"+((e.reason&&e.reason.message)||e.reason)); });
+</script>
+</head>
+<body>
+<!-- ===================== MENU BAR (ala Premiere Pro) ===================== -->
+<header id="menubar">
+  <div class="brand">Premiere<span>Cut</span></div>
+  <nav class="menus" id="mainMenus">
+    <div class="menu" data-menu="file">File</div>
+    <div class="menu" data-menu="edit">Edit</div>
+    <div class="menu" data-menu="clip">Clip</div>
+    <div class="menu" data-menu="sequence">Sequence</div>
+    <div class="menu" data-menu="effects">Effects</div>
+    <div class="menu" data-menu="color">Color</div>
+    <div class="menu" data-menu="export">Export</div>
+    <div class="menu" data-menu="help">Help</div>
+  </nav>
+  <div class="topbar-right">
+    <button id="btnUndo" title="Undo (Ctrl+Z)">↶</button>
+    <button id="btnRedo" title="Redo (Ctrl+Y)">↷</button>
+    <span class="sep"></span>
+    <button id="btnSave" title="Save Project (Ctrl+S)">Save</button>
+    <button id="btnLoad" title="Load Project">Load</button>
+    <button id="btnExportTop" class="accent" title="Export (Ctrl+E)">Export</button>
+  </div>
+</header>
+
+<!-- ===================== WORKSPACE ===================== -->
+<div id="workspace">
+  <!-- ---------- LEFT ---------- -->
+  <aside id="leftPanel" class="panel-column">
+    <section class="panel" id="projectPanel">
+      <div class="panel-head">
+        <span class="panel-title">Project — Media Bin</span>
+        <div class="panel-tools">
+          <button id="btnImport" class="accent small">Import Media</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div id="mediaDrop" class="media-drop">
+          <div class="drop-hint">Drag & drop video / audio / gambar di sini<br><small>atau klik Import Media</small></div>
+          <div id="mediaGrid" class="media-grid"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="effectsPanel">
+      <div class="panel-head">
+        <span class="panel-title">Effects &amp; Filters</span>
+        <div class="panel-tabs" id="effectTabs">
+          <button data-tab="filter" class="active">Filters</button>
+          <button data-tab="effect">Effects</button>
+          <button data-tab="transition">Transitions</button>
+          <button data-tab="text">Text</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div id="effectGrid" class="effect-grid"></div>
+      </div>
+    </section>
+  </aside>
+
+  <!-- ---------- CENTER ---------- -->
+  <main id="centerPanel" class="panel-column">
+    <section class="panel" id="monitorPanel">
+      <div class="panel-head">
+        <span class="panel-title">Program Monitor</span>
+        <div class="panel-tools">
+          <span id="monitorTime" class="mono">00:00:00:00</span>
+          <select id="zoomFit" title="Zoom preview">
+            <option value="fit">Fit</option>
+            <option value="25">25%</option>
+            <option value="50">50%</option>
+            <option value="100">100%</option>
+          </select>
+        </div>
+      </div>
+      <div class="panel-body monitor-body">
+        <div id="monitorStage" class="monitor-stage">
+          <canvas id="previewCanvas"></canvas>
+        </div>
+      </div>
+      <div class="transport" id="transport">
+        <button id="btnGoStart" title="Ke awal (Home)">⏮</button>
+        <button id="btnPrevFrame" title="Frame sebelumnya (←)">◀|</button>
+        <button id="btnPlay" class="play" title="Play/Pause (Space)">▶</button>
+        <button id="btnNextFrame" title="Frame berikutnya (→)">|▶</button>
+        <button id="btnGoEnd" title="Ke akhir (End)">⏭</button>
+        <button id="btnSplit" title="Split (S)">Split</button>
+        <button id="btnDeleteClip" title="Hapus klip (Del)">Hapus</button>
+        <span class="sep"></span>
+        <label class="vol">🔊 <input id="masterVolume" type="range" min="0" max="1" step="0.01" value="1"></label>
+      </div>
+    </section>
+
+    <!-- ---------- TIMELINE ---------- -->
+    <section class="panel" id="timelinePanel">
+      <div class="panel-head">
+        <span class="panel-title">Timeline — Sequence 01</span>
+        <div class="panel-tools">
+          <label class="mini">Zoom <input id="timelineZoom" type="range" min="10" max="300" value="80"></label>
+          <button id="tlZoomOut" class="small">−</button>
+          <button id="tlZoomIn" class="small">+</button>
+          <span class="sep"></span>
+          <button id="btnAddVideoTrack" class="small" title="Tambah track video">+V</button>
+          <button id="btnAddAudioTrack" class="small" title="Tambah track audio">+A</button>
+        </div>
+      </div>
+      <div class="panel-body timeline-body">
+        <div id="timelineScroll" class="timeline-scroll">
+          <div id="timelineInner" class="timeline-inner"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ---------- RIGHT ---------- -->
+  <aside id="rightPanel" class="panel-column">
+    <section class="panel" id="inspectorPanel">
+      <div class="panel-head">
+        <span class="panel-title">Effect Controls / Inspector</span>
+      </div>
+      <div class="panel-body" id="inspectorBody">
+        <div class="empty">Pilih klip untuk mengatur properti.</div>
+      </div>
+    </section>
+
+    <section class="panel" id="colorPanel">
+      <div class="panel-head"><span class="panel-title">Lumetri Color</span></div>
+      <div class="panel-body" id="colorBody">
+        <div class="empty">Pilih klip video.</div>
+      </div>
+    </section>
+
+    <section class="panel" id="audioPanel">
+      <div class="panel-head"><span class="panel-title">Audio</span></div>
+      <div class="panel-body" id="audioBody">
+        <div class="empty">Pilih klip audio/video.</div>
+      </div>
+    </section>
+  </aside>
+</div>
+
+<!-- ===================== STATUS BAR ===================== -->
+<footer id="statusbar">
+  <span id="statusText">Siap</span>
+  <span class="spacer"></span>
+  <span id="statusInfo"></span>
+</footer>
+
+<!-- ===================== OVERLAYS ===================== -->
+<div id="menuDropdown" class="menu-dropdown hidden"></div>
+
+<div id="exportModal" class="modal hidden">
+  <div class="modal-card">
+    <div class="modal-head">Export Video</div>
+    <div class="modal-body">
+      <label>Resolusi
+        <select id="expRes">
+          <option value="1920x1080">1920 × 1080 (Full HD)</option>
+          <option value="1280x720">1280 × 720 (HD)</option>
+          <option value="854x480">854 × 480</option>
+          <option value="1080x1920">1080 × 1920 (Vertikal)</option>
+        </select>
+      </label>
+      <label>Frame Rate
+        <select id="expFps"><option>24</option><option selected>30</option><option>60</option></select>
+      </label>
+      <label>Kualitas (bitrate Mbps)
+        <input id="expBitrate" type="number" min="1" max="50" value="12">
+      </label>
+      <label class="chk"><input id="expIncludeAudio" type="checkbox" checked> Sertakan audio</label>
+      <p class="hint">Export merekam preview secara real-time (durasi export ≈ durasi video). Format keluaran: <b>.webm</b>.</p>
+      <div class="export-progress hidden" id="expProgressWrap">
+        <div class="bar"><div id="expProgressBar"></div></div>
+        <span id="expProgressText">0%</span>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button id="expCancel">Batal</button>
+      <button id="expStart" class="accent">Mulai Export</button>
+    </div>
+  </div>
+</div>
+
+<input id="fileInput" type="file" multiple accept="video/*,audio/*,image/*" class="hidden" />
+<script src="js/util.js"></script>
+<script src="js/state.js"></script>
+<script src="js/effects-data.js"></script>
+<script src="js/renderer.js"></script>
+<script src="js/media.js"></script>
+<script src="js/timeline.js"></script>
+<script src="js/inspector.js"></script>
+<script src="js/effects-panel.js"></script>
+<script src="js/playback.js"></script>
+<script src="js/export.js"></script>
+<script src="js/menus.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
