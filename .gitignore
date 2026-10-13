@@ -14,3 +14,6 @@ dist/
 # exported videos
 *.webm
 export/
+
+# workflows (token tanpa scope workflow tidak bisa push file ini)
+.github/

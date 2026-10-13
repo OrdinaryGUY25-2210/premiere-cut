@@ -91,6 +91,7 @@
     // Settings toggles
     add("Pengaturan", "Toggle Snapping", "", "snap snapping magnet toggle", () => { App.settings.snap = !App.settings.snap; App.status("Snapping: " + (App.settings.snap ? "ON" : "OFF")); });
     add("Pengaturan", "Ganti Mode Gambar", "", "fit contain cover stretch gambar", () => { const order = ["contain", "cover", "stretch"]; const i = order.indexOf(App.settings.fitMode); App.settings.fitMode = order[(i + 1) % order.length]; Renderer.drawFrame(App.playhead); App.status("Mode gambar: " + App.settings.fitMode); });
+    add("Pengaturan", "Reset Tata Letak", "", "reset layout tata letak panel ukuran", () => Layout.reset());
     add("Pengaturan", "Warna Latar Hitam", "", "background warna latar black hitam", () => { App.settings.bg = "#000000"; Renderer.drawFrame(App.playhead); });
     add("Pengaturan", "Warna Latar Hijau (Green Screen)", "", "background green hijau chroma", () => { App.settings.bg = "#00b140"; Renderer.drawFrame(App.playhead); });
 

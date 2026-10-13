@@ -59,6 +59,7 @@
     help: [
       item("Cari Fitur…", "Ctrl+K", () => Commands.show()),
       item("Pengaturan…", "Ctrl+,", () => Settings.open()),
+      item("Reset Tata Letak Panel", "", () => Layout.reset()),
       div(),
       item("Shortcut Keyboard", "", () => Menu.shortcuts()),
       item("Tentang PremiereCut", "", () => alert("PremiereCut — gabungan UX Adobe Premiere Pro + panel efek gaya CapCut.\nDibuat sebagai web app untuk pengujian.")),

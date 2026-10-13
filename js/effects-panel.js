@@ -45,7 +45,7 @@
     if (!list.length) { grid.appendChild(U.el("div", "empty", "Tidak ada hasil.")); return; }
     list.forEach((tpl) => {
       const el = U.el("div", "fx-item tpl");
-      el.appendChild(U.el("div", "fx-thumb", tpl.icon));
+      el.appendChild(FXThumb.el("template", tpl));
       el.appendChild(U.el("div", "fx-name", tpl.name));
       el.addEventListener("click", () => { Presets.applyTemplate(tpl); P.render(); });
       grid.appendChild(el);
@@ -75,8 +75,7 @@
     const applied = clip && ((kind === "filter" && clip.filters.some((f) => f.id === it.id)) ||
       (kind === "effect" && clip.effects.some((e) => e.id === it.id)));
     const el = U.el("div", "fx-item" + (applied ? " sel" : ""));
-    const th = U.el("div", "fx-thumb", it.icon);
-    el.appendChild(th);
+    el.appendChild(FXThumb.el(kind, it));
     el.appendChild(U.el("div", "fx-name", it.name));
     el.addEventListener("click", () => {
       const c = clipAccepts();
@@ -100,7 +99,7 @@
     if (!list.length) { grid.appendChild(U.el("div", "empty", "Tidak ada hasil.")); return; }
     list.forEach((tr) => {
       const el = U.el("div", "fx-item tr");
-      el.appendChild(U.el("div", "fx-thumb", tr.icon));
+      el.appendChild(FXThumb.el("transition", tr));
       el.appendChild(U.el("div", "fx-name", tr.name));
       el.addEventListener("click", () => {
         const c = clipAccepts();
@@ -122,7 +121,7 @@
     if (!list.length) { grid.appendChild(U.el("div", "empty", "Tidak ada hasil.")); return; }
     list.forEach((tp) => {
       const el = U.el("div", "fx-item tx");
-      el.appendChild(U.el("div", "fx-thumb", tp.icon));
+      el.appendChild(FXThumb.el("text", tp));
       el.appendChild(U.el("div", "fx-name", tp.name));
       el.addEventListener("click", () => {
         const media = Media.addText(tp.style);

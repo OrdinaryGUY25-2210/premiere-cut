@@ -21,6 +21,7 @@
     Settings.init();
     Speech.init();
     Commands.init();
+    Layout.init();
     IDB.startAutosave();
     const expFrameBtn = document.getElementById("expFrame");
     if (expFrameBtn) expFrameBtn.addEventListener("click", () => { Renderer.exportFrame(); Exporter.close(); });
@@ -135,6 +136,9 @@
       const resolved = FXData.resolveParams(FXData.Effects.find((x) => x.id === "vignette"), { size: 0.4 });
       Commands.build();
       Settings.render();
+      const tcv = document.createElement("canvas");
+      let thumbOK = false;
+      try { FXThumb.render(tcv, "filter", FXData.Filters[0]); thumbOK = tcv.toDataURL().length > 500; } catch (e) {}
       out.push("media=" + App.project.media.length);
       out.push("vClips=" + vTrack.clips.length);
       out.push("cues=" + cues.length);
@@ -142,6 +146,9 @@
       out.push("easeScale@1=" + easeVal);
       out.push("fxParamSize=" + resolved.size);
       out.push("cmds=" + Commands.all.length);
+      out.push("thumbOK=" + thumbOK);
+      out.push("layout=" + !!window.Layout);
+      out.push("splitters=" + document.querySelectorAll(".v-split,.h-split").length);
       out.push("settings=" + (App.settings.snap ? "on" : "off"));
       out.push("seqDur=" + dur.toFixed(2));
       out.push("jsonBytes=" + json);
