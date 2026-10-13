@@ -61,8 +61,9 @@
         <div class="panel-tabs" id="effectTabs">
           <button data-tab="filter" class="active">Filters</button>
           <button data-tab="effect">Effects</button>
-          <button data-tab="transition">Transitions</button>
-          <button data-tab="text">Text</button>
+          <button data-tab="transition">Transisi</button>
+          <button data-tab="template">Template</button>
+          <button data-tab="text">Teks</button>
         </div>
       </div>
       <div class="panel-body">
@@ -144,10 +145,15 @@
     </section>
 
     <section class="panel" id="audioPanel">
-      <div class="panel-head"><span class="panel-title">Audio</span></div>
+      <div class="panel-head"><span class="panel-title">Audio (Klip)</span></div>
       <div class="panel-body" id="audioBody">
         <div class="empty">Pilih klip audio/video.</div>
       </div>
+    </section>
+
+    <section class="panel" id="mixerPanel">
+      <div class="panel-head"><span class="panel-title">Audio Mixer</span></div>
+      <div class="panel-body" id="mixerBody"></div>
     </section>
   </aside>
 </div>
@@ -166,6 +172,9 @@
   <div class="modal-card">
     <div class="modal-head">Export Video</div>
     <div class="modal-body">
+      <label>Preset
+        <select id="expPreset"><option value="">— Pilih preset —</option></select>
+      </label>
       <label>Resolusi
         <select id="expRes">
           <option value="1920x1080">1920 × 1080 (Full HD)</option>
@@ -188,6 +197,7 @@
       </div>
     </div>
     <div class="modal-foot">
+      <button id="expFrame">Export Frame (PNG)</button>
       <button id="expCancel">Batal</button>
       <button id="expStart" class="accent">Mulai Export</button>
     </div>
@@ -198,11 +208,15 @@
 <script src="js/util.js"></script>
 <script src="js/state.js"></script>
 <script src="js/effects-data.js"></script>
+<script src="js/keyframes.js"></script>
 <script src="js/renderer.js"></script>
 <script src="js/media.js"></script>
 <script src="js/timeline.js"></script>
 <script src="js/inspector.js"></script>
 <script src="js/effects-panel.js"></script>
+<script src="js/audio-mixer.js"></script>
+<script src="js/subtitles.js"></script>
+<script src="js/presets.js"></script>
 <script src="js/playback.js"></script>
 <script src="js/export.js"></script>
 <script src="js/menus.js"></script>

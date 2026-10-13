@@ -12,6 +12,12 @@
   function defaultTransition() {
     return { in: { type: "none", duration: 0 }, out: { type: "none", duration: 0 } };
   }
+  function defaultMask() {
+    return { enabled: false, type: "rect", x: 0.5, y: 0.5, w: 0.6, h: 0.6, feather: 0, invert: false };
+  }
+  function defaultChroma() {
+    return { enabled: false, color: "#00ff00", tolerance: 0.30, softness: 0.10, spill: 0.15 };
+  }
 
   const App = {
     project: null,
@@ -31,6 +37,8 @@
     transform: defaultTransform,
     audio: defaultAudio,
     transition: defaultTransition,
+    mask: defaultMask,
+    chroma: defaultChroma,
   };
 
   App.newProject = function () {
@@ -40,10 +48,10 @@
       fps: 30,
       media: [],
       tracks: [
-        { id: U.uid("trk"), type: "video", name: "V2", clips: [] },
-        { id: U.uid("trk"), type: "video", name: "V1", clips: [] },
-        { id: U.uid("trk"), type: "audio", name: "A1", clips: [] },
-        { id: U.uid("trk"), type: "audio", name: "A2", clips: [] },
+        { id: U.uid("trk"), type: "video", name: "V2", clips: [], gain: 1, muted: false, solo: false },
+        { id: U.uid("trk"), type: "video", name: "V1", clips: [], gain: 1, muted: false, solo: false },
+        { id: U.uid("trk"), type: "audio", name: "A1", clips: [], gain: 1, muted: false, solo: false },
+        { id: U.uid("trk"), type: "audio", name: "A2", clips: [], gain: 1, muted: false, solo: false },
       ],
     };
   };
@@ -102,6 +110,9 @@
       transform: defaultTransform(),
       audio: defaultAudio(),
       transition: defaultTransition(),
+      keyframes: {},
+      mask: defaultMask(),
+      chroma: defaultChroma(),
       filters: [],
       effects: [],
       text: isText

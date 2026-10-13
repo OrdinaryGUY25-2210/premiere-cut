@@ -13,6 +13,8 @@
     file: [
       item("Proyek Baru", "Ctrl+N", () => App.__newProject()),
       item("Import Media…", "Ctrl+I", () => document.getElementById("fileInput").click()),
+      item("Import Subtitle (SRT/VTT)…", "", () => Subtitle.importFile()),
+      item("Export Frame (PNG)", "", () => Renderer.exportFrame()),
       div(),
       item("Simpan Proyek", "Ctrl+S", () => Menu.save()),
       item("Muat Proyek…", "Ctrl+O", () => Menu.load()),
@@ -45,6 +47,8 @@
       item("Panel Filters", "", () => switchTab("filter")),
       item("Panel Effects", "", () => switchTab("effect")),
       item("Panel Transitions", "", () => switchTab("transition")),
+      item("Panel Templates", "", () => switchTab("template")),
+      item("Panel Teks", "", () => switchTab("text")),
     ],
     color: [item("Buka Lumetri Color", "", () => document.getElementById("colorPanel").scrollIntoView())],
     export: [item("Export Video…", "Ctrl+E", () => Exporter.open()), item("Simpan Proyek (.json)", "Ctrl+S", () => Menu.save())],

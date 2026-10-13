@@ -23,8 +23,20 @@
     if (P.tab === "filter") renderGroups(grid, FXData.Filters, "filter");
     else if (P.tab === "effect") renderGroups(grid, FXData.Effects, "effect");
     else if (P.tab === "transition") renderTransitions(grid);
+    else if (P.tab === "template") renderTemplates(grid);
     else renderText(grid);
   };
+
+  function renderTemplates(grid) {
+    grid.appendChild(U.el("div", "fx-cat", "Template (klik untuk terapkan ke klip terpilih)"));
+    FXData.Templates.forEach((tpl) => {
+      const el = U.el("div", "fx-item tpl");
+      el.appendChild(U.el("div", "fx-thumb", tpl.icon));
+      el.appendChild(U.el("div", "fx-name", tpl.name));
+      el.addEventListener("click", () => { Presets.applyTemplate(tpl); P.render(); });
+      grid.appendChild(el);
+    });
+  }
 
   function clipAccepts() {
     const clip = App.selectedClip();

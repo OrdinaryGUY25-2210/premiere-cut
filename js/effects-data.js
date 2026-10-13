@@ -20,6 +20,15 @@
     { id: "fade", name: "Fade", group: "Artistik", icon: "🌫️", fn: (i) => `contrast(${1 - 0.4 * i}) brightness(${1 + 0.18 * i}) saturate(${1 - 0.2 * i})` },
     { id: "cyber", name: "Cyber", group: "Artistik", icon: "🟣", fn: (i) => `hue-rotate(${280 * i}deg) saturate(${1 + 1.3 * i}) contrast(${1 + 0.3 * i})` },
     { id: "blur", name: "Blur", group: "Artistik", icon: "💧", fn: (i) => `blur(${6 * i}px)` },
+    { id: "sharp", name: "Tajam", group: "Dasar", icon: "🔺", fn: (i) => `contrast(${1 + 0.5 * i}) saturate(${1 + 0.15 * i})` },
+    { id: "vivid2", name: "Vivid +", group: "Warna", icon: "🟥", fn: (i) => `saturate(${1 + 2 * i}) contrast(${1 + 0.35 * i})` },
+    { id: "noir", name: "Noir", group: "Artistik", icon: "🎩", fn: (i) => `grayscale(${0.7 * i}) contrast(${1 + 0.6 * i}) brightness(${1 - 0.08 * i})` },
+    { id: "teal", name: "Teal & Orange", group: "Warna", icon: "🎬", fn: (i) => `hue-rotate(${-8 * i}deg) saturate(${1 + 0.6 * i}) contrast(${1 + 0.2 * i})` },
+    { id: "dream", name: "Dreamy", group: "Artistik", icon: "☁️", fn: (i) => `brightness(${1 + 0.15 * i}) saturate(${1 + 0.3 * i}) blur(${1.5 * i}px)` },
+    { id: "cold", name: "Cinematic Cold", group: "Warna", icon: "🧊", fn: (i) => `hue-rotate(${-20 * i}deg) saturate(${1 + 0.15 * i}) contrast(${1 + 0.35 * i})` },
+    { id: "sunset", name: "Sunset", group: "Warna", icon: "🌇", fn: (i) => `sepia(${0.28 * i}) hue-rotate(${-12 * i}deg) saturate(${1 + 0.8 * i})` },
+    { id: "matrix", name: "Matrix", group: "Artistik", icon: "🟩", fn: (i) => `hue-rotate(${90 * i}deg) saturate(${1 + 0.8 * i}) contrast(${1 + 0.2 * i}) grayscale(${0.3 * i})` },
+    { id: "pop", name: "Pop Art", group: "Artistik", icon: "🎈", fn: (i) => `saturate(${1 + 2.5 * i}) contrast(${1 + 0.5 * i}) hue-rotate(${8 * i}deg)` },
   ];
 
   // ---------- EFFECTS (post-processing canvas) ----------
@@ -83,6 +92,47 @@
         ctx.fillStyle = "#808080"; ctx.fillRect(0, 0, w, h); ctx.restore();
       },
     },
+    {
+      id: "filmBars", name: "Film Bars", group: "Tekstur", icon: "🎞️",
+      post: (ctx, w, h, t, i) => {
+        const bh = h * 0.11 * i; ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, w, bh); ctx.fillRect(0, h - bh, w, bh);
+      },
+    },
+    {
+      id: "scan", name: "Scanlines", group: "Tekstur", icon: "📼",
+      post: (ctx, w, h, t, i) => {
+        ctx.save(); ctx.globalAlpha = 0.25 * i; ctx.fillStyle = "#000";
+        for (let y = 0; y < h; y += 4) ctx.fillRect(0, y, w, 1.5);
+        ctx.restore();
+      },
+    },
+    {
+      id: "flash", name: "Flash", group: "Cahaya", icon: "⚡",
+      post: (ctx, w, h, t, i) => {
+        const a = Math.max(0, Math.sin(t * 8) * 0.5) * i;
+        if (a > 0.02) { ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, h); ctx.restore(); }
+      },
+    },
+    {
+      id: "pixelate", name: "Pixelate", group: "Tekstur", icon: "🟦",
+      post: (ctx, w, h, t, i) => {
+        if (i <= 0) return; const px = Math.max(2, Math.round(4 + 40 * i));
+        try { const tmp = document.createElement("canvas"); tmp.width = Math.max(1, Math.round(w / px)); tmp.height = Math.max(1, Math.round(h / px)); const tc = tmp.getContext("2d"); tc.drawImage(ctx.canvas, 0, 0, tmp.width, tmp.height); ctx.imageSmoothingEnabled = false; ctx.drawImage(tmp, 0, 0, w, h); ctx.imageSmoothingEnabled = true; } catch (e) {}
+      },
+    },
+    {
+      id: "chromaPulse", name: "RGB Pulse", group: "Gerak", icon: "🟥",
+      mod: (t, i) => ({ scale: 1 + 0.02 * i * Math.sin(t * 6) }),
+    },
+    {
+      id: "bounce", name: "Bounce", group: "Gerak", icon: "🏀",
+      mod: (t, i) => { const per = 0.7; const ph = (t % per) / per; const bounce = Math.abs(Math.sin(ph * Math.PI)) * (1 - ph); return { dy: -bounce * 120 * i }; },
+    },
+    {
+      id: "sway", name: "Sway", group: "Gerak", icon: "🌊",
+      mod: (t, i) => ({ rot: Math.sin(t * 1.5) * 0.06 * i, dx: Math.sin(t * 1.1) * 30 * i }),
+    },
   ];
 
   // ---------- TRANSITIONS ----------
@@ -94,7 +144,12 @@
     { id: "slideL", name: "Slide Left", icon: "⬅️" },
     { id: "slideR", name: "Slide Right", icon: "➡️" },
     { id: "slideU", name: "Slide Up", icon: "⬆️" },
+    { id: "slideD", name: "Slide Down", icon: "⬇️" },
     { id: "zoom", name: "Zoom", icon: "🔎" },
+    { id: "zoomOut", name: "Zoom Out", icon: "🔍" },
+    { id: "wipeL", name: "Wipe Left", icon: "◀" },
+    { id: "wipeR", name: "Wipe Right", icon: "▶" },
+    { id: "iris", name: "Iris", icon: "◎" },
   ];
 
   // ---------- TEXT PRESETS ----------
@@ -107,5 +162,28 @@
     { id: "box", name: "Box", icon: "🧱", style: { size: 64, color: "#111111", bg: "#ffe600", bold: true } },
   ];
 
-  window.FXData = { Filters, Effects, Transitions, TextPresets };
+  // ---------- TEMPLATES (combo filter + effect + transisi) ----------
+  const Templates = [
+    { id: "tpl_tiktok", name: "TikTok Pop", icon: "🎵", filters: [{ id: "saturate", intensity: 0.8 }, { id: "contrast", intensity: 0.4 }], effects: [{ id: "zoomPulse", intensity: 0.5 }], transition: "zoom" },
+    { id: "tpl_cine", name: "Cinematic", icon: "🎬", filters: [{ id: "cold", intensity: 0.7 }, { id: "contrast", intensity: 0.3 }], effects: [{ id: "filmBars", intensity: 1 }, { id: "vignette", intensity: 0.6 }], transition: "fade" },
+    { id: "tpl_vlog", name: "Vlog Warm", icon: "📹", filters: [{ id: "warm", intensity: 0.7 }, { id: "bright", intensity: 0.3 }], effects: [{ id: "leak", intensity: 0.4 }], transition: "fade" },
+    { id: "tpl_retro", name: "Retro 80s", icon: "🕹️", filters: [{ id: "vintage", intensity: 0.8 }], effects: [{ id: "scan", intensity: 0.6 }, { id: "grain", intensity: 0.5 }], transition: "slideL" },
+    { id: "tpl_neon", name: "Neon Night", icon: "🌃", filters: [{ id: "cyber", intensity: 0.9 }, { id: "contrast", intensity: 0.4 }], effects: [{ id: "glitch", intensity: 0.5 }], transition: "zoom" },
+    { id: "tpl_bw", name: "Mono Drama", icon: "⬛", filters: [{ id: "noir", intensity: 0.9 }], effects: [{ id: "vignette", intensity: 0.8 }, { id: "grain", intensity: 0.4 }], transition: "dipBlack" },
+    { id: "tpl_dream", name: "Dreamy", icon: "☁️", filters: [{ id: "dream", intensity: 0.8 }], effects: [{ id: "leak", intensity: 0.5 }], transition: "fade" },
+    { id: "tpl_action", name: "Action", icon: "💥", filters: [{ id: "contrast", intensity: 0.6 }, { id: "warm", intensity: 0.4 }], effects: [{ id: "shake", intensity: 0.35 }, { id: "vignette", intensity: 0.5 }], transition: "wipeR" },
+    { id: "tpl_clean", name: "Clean Bright", icon: "✨", filters: [{ id: "bright", intensity: 0.4 }, { id: "saturate", intensity: 0.3 }], effects: [], transition: "fade" },
+  ];
+
+  // ---------- EXPORT PRESETS ----------
+  const ExportPresets = [
+    { id: "yt1080", name: "YouTube 1080p", w: 1920, h: 1080, fps: 30, bitrate: 16 },
+    { id: "yt720", name: "HD 720p", w: 1280, h: 720, fps: 30, bitrate: 10 },
+    { id: "shorts", name: "Shorts / Reels (9:16)", w: 1080, h: 1920, fps: 30, bitrate: 12 },
+    { id: "square", name: "Square (1:1)", w: 1080, h: 1080, fps: 30, bitrate: 10 },
+    { id: "cinema", name: "Cinema 24fps", w: 1920, h: 1080, fps: 24, bitrate: 18 },
+    { id: "web", name: "Web Kecil", w: 854, h: 480, fps: 30, bitrate: 5 },
+  ];
+
+  window.FXData = { Filters, Effects, Transitions, TextPresets, Templates, ExportPresets };
 })();

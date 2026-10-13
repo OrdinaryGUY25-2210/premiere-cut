@@ -10,8 +10,7 @@
     document.getElementById("btnGoEnd").addEventListener("click", () => PB.seek(App.sequenceDuration()));
     document.getElementById("btnPrevFrame").addEventListener("click", () => PB.stepFrame(-1));
     document.getElementById("btnNextFrame").addEventListener("click", () => PB.stepFrame(1));
-    const mv = document.getElementById("masterVolume");
-    mv.addEventListener("input", PB.applyAudio);
+    document.getElementById("masterVolume").addEventListener("input", PB.applyAudio);
   };
 
   PB.seek = function (t) {
@@ -21,9 +20,7 @@
     Timeline.updatePlayhead();
   };
 
-  PB.stepFrame = function (n) {
-    PB.seek(App.playhead + n / App.fps);
-  };
+  PB.stepFrame = function (n) { PB.seek(App.playhead + n / App.fps); };
 
   PB.toggle = function (force) {
     const want = typeof force === "boolean" ? force : !PB.playing;
@@ -47,11 +44,7 @@
     const t = PB.baseT + (performance.now() - PB.basePerf) / 1000;
     const dur = App.sequenceDuration();
     if (t >= dur) {
-      App.playhead = dur;
-      Renderer.drawFrame(dur);
-      Timeline.updatePlayhead();
-      PB.pause();
-      return;
+      App.playhead = dur; Renderer.drawFrame(dur); Timeline.updatePlayhead(); PB.pause(); return;
     }
     App.playhead = t;
     Renderer.drawFrame(t);
@@ -65,11 +58,16 @@
     if (PB.raf) cancelAnimationFrame(PB.raf);
     PB.raf = null;
     document.getElementById("btnPlay").textContent = "▶";
-    // hentikan semua elemen
     Object.keys(App.mediaEls).forEach((id) => { const el = App.mediaEls[id]; if (el && el.pause) { try { el.pause(); } catch (e) {} } });
   };
 
-  // sinkronkan elemen media dengan playhead
+  function soloActive() { return App.project.tracks.some((t) => t.solo); }
+  function trackAudible(track) {
+    if (!track) return true;
+    if (track.muted) return false;
+    return soloActive() ? !!track.solo : true;
+  }
+
   PB.syncMedia = function (immediate) {
     const t = App.playhead;
     const activeMedia = {};
@@ -89,14 +87,11 @@
         if (el.paused) { el.play().catch(() => {}); }
       }
     }));
-
-    // pause media yang tidak aktif
     Object.keys(App.mediaEls).forEach((id) => {
       const el = App.mediaEls[id];
       if (!el || !el.pause) return;
       if (!activeMedia[id] && !el.paused) { try { el.pause(); } catch (e) {} }
     });
-
     PB.applyAudio();
   };
 
@@ -106,21 +101,23 @@
     Object.keys(App.mediaEls).forEach((id) => {
       const el = App.mediaEls[id];
       if (!el || el.volume === undefined) return;
-      // cari clip aktif dari media ini
-      let activeClip = null, localT = 0;
+      let activeClip = null, activeTrack = null, localT = 0;
       App.project.tracks.forEach((trk) => trk.clips.forEach((clip) => {
         if (clip.mediaId !== id || clip.text) return;
         const dur = App.clipDuration(clip);
-        if (t >= clip.start && t < clip.start + dur) { activeClip = clip; localT = t - clip.start; }
+        if (t >= clip.start && t < clip.start + dur) { activeClip = clip; activeTrack = trk; localT = t - clip.start; }
       }));
-      if (!activeClip) { if (!el.paused) el.volume = 0; else el.volume = el.volume; return; }
+      if (!activeClip) { if (!el.paused) el.volume = 0; return; }
       const a = activeClip.audio || { volume: 1, muted: false, fadeIn: 0, fadeOut: 0 };
       const dur = App.clipDuration(activeClip);
       let f = 1;
       if (a.fadeIn > 0 && localT < a.fadeIn) f = Math.min(f, localT / a.fadeIn);
       if (a.fadeOut > 0 && localT > dur - a.fadeOut) f = Math.min(f, (dur - localT) / a.fadeOut);
-      el.muted = !!a.muted;
-      el.volume = U.clamp(a.volume * master * f, 0, 1);
+      const baseVol = Keyframes.isAnimated(activeClip, "volume") ? Keyframes.eval(activeClip, "volume", t, a.volume) : a.volume;
+      const tg = activeTrack ? (activeTrack.gain != null ? activeTrack.gain : 1) : 1;
+      const audible = trackAudible(activeTrack);
+      el.muted = !audible || !!a.muted;
+      el.volume = U.clamp(baseVol * tg * master * f, 0, 1);
     });
   };
 

@@ -13,9 +13,13 @@
     Timeline.init();
     Inspector.init();
     EffectsPanel.init();
+    AudioMixer.init();
+    Presets.initExportPresets();
     Playback.init();
     Exporter.init();
     Menu.init();
+    const expFrameBtn = document.getElementById("expFrame");
+    if (expFrameBtn) expFrameBtn.addEventListener("click", () => { Renderer.exportFrame(); Exporter.close(); });
 
     // transport
     document.getElementById("btnSplit").addEventListener("click", () => Timeline.splitAtPlayhead());
@@ -82,23 +86,40 @@
       clip.filters.push({ id: "saturate", intensity: 0.8 });
       clip.effects.push({ id: "vignette", intensity: 0.5 });
       clip.transition.in = { type: "fade", duration: 0.5 };
+      // keyframes
+      Keyframes.set(clip, "scale", 0, 1);
+      Keyframes.set(clip, "scale", 2, 1.5);
+      const kfEval = Keyframes.eval(clip, "scale", 1, 1).toFixed(3);
+      // mask + chroma + template
+      clip.mask.enabled = true; clip.mask.type = "ellipse"; clip.mask.feather = 0.3;
+      clip.chroma.enabled = false;
+      Presets.applyTemplate(FXData.Templates[1]);
+      // subtitle import
+      const cues = Subtitle.parse("1\n00:00:01,000 --> 00:00:02,500\nHalo dunia\n\n2\n00:00:03,000 --> 00:00:04,000\nBaris dua");
+      Subtitle.importFromCues(cues);
+      // mixer
+      App.project.tracks[2].gain = 0.5; App.project.tracks[2].solo = true;
+      AudioMixer.render();
       Playback.seek(1);
       Renderer.drawFrame(1);
       Timeline.render();
       App.select(clip.id);
       Inspector.render();
       EffectsPanel.render();
+      EffectsPanel.tab = "template"; EffectsPanel.render();
       Playback.seek(2);
       Timeline.splitAtPlayhead();
-      const clipsAfter = vTrack.clips.length;
+      Playback.applyAudio();
       const dur = App.sequenceDuration();
       const json = JSON.stringify(App.project).length;
       const px = Renderer.canvas.toDataURL().length;
       out.push("media=" + App.project.media.length);
-      out.push("clips=" + clipsAfter);
+      out.push("vClips=" + vTrack.clips.length);
+      out.push("cues=" + cues.length);
+      out.push("kfScale@1=" + kfEval);
       out.push("seqDur=" + dur.toFixed(2));
       out.push("jsonBytes=" + json);
-      out.push("canvasData=" + px);
+      out.push("canvasOK=" + (px > 1000));
       out.push("timelineEls=" + T2count());
       out.push("RESULT=PASS");
     } catch (e) {
