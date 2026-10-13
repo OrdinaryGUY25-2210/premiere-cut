@@ -154,6 +154,22 @@
       out.push("jsonBytes=" + json);
       out.push("canvasOK=" + (px > 1000));
       out.push("timelineEls=" + T2count());
+      // tata letak: panel tambah/hapus/pindah + snap + workspace
+      const LS = Layout.stats();
+      out.push("layoutPanels=" + LS.panels);
+      out.push("layoutSplitters=" + LS.splitters);
+      out.push("layoutAdds=" + LS.adds);
+      out.push("snapPts=" + LS.snapPoints);
+      Layout.addPanel("notes", "right");
+      Layout.addPanel("shortcuts", "left");
+      Layout.park("mixer");
+      Layout.saveWorkspace("__test__");
+      const LS2 = Layout.stats();
+      out.push("layoutAfterAdd=" + LS2.panels);
+      out.push("layoutParked=" + LS2.parked);
+      out.push("layoutSplitters2=" + LS2.splitters);
+      out.push("workspace=" + (!!Layout.presets().user["__test__"] ? "ok" : "no"));
+      Layout.removeWorkspace("__test__");
       out.push("RESULT=PASS");
     } catch (e) {
       out.push("RESULT=FAIL:" + e.message);

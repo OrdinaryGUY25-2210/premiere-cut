@@ -87,6 +87,17 @@
     add("Panel", "Pengaturan", "Ctrl+,", "settings pengaturan opsi preferensi", () => Settings.open());
     add("Panel", "Live Caption (Mic)", "", "caption subtitle speech mic auto transkripsi", () => Speech.open ? Speech.open() : openCaption());
     add("Panel", "Shortcut Keyboard", "", "shortcut keyboard bantuan help", () => Menu.shortcuts());
+    add("Panel", "Tambah Panel: Notes", "", "panel notes catatan tambah layout", () => Layout.addPanel("notes", "right"));
+    add("Panel", "Tambah Panel: Shortcuts", "", "panel shortcut tombol tambah layout", () => Layout.addPanel("shortcuts", "left"));
+    add("Panel", "Menu Layout / Workspace", "", "layout workspace panel tata letak preset bagi kolom", () => Layout.openMenu());
+
+    // Workspace preset
+    add("Workspace", "Workspace: Editing", "", "layout preset editing susunan", () => Layout.applyWorkspace("Editing"));
+    add("Workspace", "Workspace: Effects", "", "layout preset effects efek", () => Layout.applyWorkspace("Effects"));
+    add("Workspace", "Workspace: Color", "", "layout preset color warna", () => Layout.applyWorkspace("Color"));
+    add("Workspace", "Workspace: Audio", "", "layout preset audio mixer", () => Layout.applyWorkspace("Audio"));
+    add("Workspace", "Simpan Layout Saat Ini…", "", "save layout workspace simpan susunan", () => { const n = prompt("Nama layout:"); if (n) Layout.saveWorkspace(n); });
+    add("Workspace", "Toggle Snap Splitter", "", "snap splitter layout menempel", () => Layout.toggleSnap());
 
     // Settings toggles
     add("Pengaturan", "Toggle Snapping", "", "snap snapping magnet toggle", () => { App.settings.snap = !App.settings.snap; App.status("Snapping: " + (App.settings.snap ? "ON" : "OFF")); });

@@ -59,6 +59,11 @@
     help: [
       item("Cari Fitur…", "Ctrl+K", () => Commands.show()),
       item("Pengaturan…", "Ctrl+,", () => Settings.open()),
+      div(),
+      item("Menu Layout / Workspace…", "", () => Layout.openMenu()),
+      item("Tambah Panel: Notes", "", () => Layout.addPanel("notes", "right")),
+      item("Tambah Panel: Shortcuts", "", () => Layout.addPanel("shortcuts", "left")),
+      item("Toggle Snap Splitter", "", () => Layout.toggleSnap()),
       item("Reset Tata Letak Panel", "", () => Layout.reset()),
       div(),
       item("Shortcut Keyboard", "", () => Menu.shortcuts()),

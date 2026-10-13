@@ -44,6 +44,8 @@
       autosave: true, autosaveMs: 20000,
       captionLang: "id-ID", captionSize: 46,
       previewQuality: 1,
+      layoutSnap: true,
+      snapPoints: [0.25, 1 / 3, 0.5, 2 / 3, 0.75],
     };
   };
   App.settings = App.defaultSettings();

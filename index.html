@@ -27,6 +27,8 @@
     <div class="menu" data-menu="help">Help</div>
   </nav>
   <div class="topbar-right">
+    <button id="btnLayout" title="Tata Letak / Workspace (panel, snap, preset)">▦ Layout</button>
+    <span class="sep"></span>
     <button id="btnSearch" title="Cari fitur / efek (Ctrl+K)">🔎 Cari</button>
     <span class="sep"></span>
     <button id="btnUndo" title="Undo (Ctrl+Z)">↶</button>
@@ -43,7 +45,7 @@
 <div id="workspace">
   <!-- ---------- LEFT ---------- -->
   <aside id="leftPanel" class="panel-column">
-    <section class="panel" id="projectPanel">
+    <section class="panel" id="projectPanel" data-panel="media">
       <div class="panel-head">
         <span class="panel-title">Project — Media Bin</span>
         <div class="panel-tools">
@@ -58,7 +60,7 @@
       </div>
     </section>
 
-    <section class="panel" id="effectsPanel">
+    <section class="panel" id="effectsPanel" data-panel="effects">
       <div class="panel-head">
         <span class="panel-title">Effects &amp; Filters</span>
         <div class="panel-tabs" id="effectTabs">
@@ -81,7 +83,7 @@
 
   <!-- ---------- CENTER ---------- -->
   <main id="centerPanel" class="panel-column">
-    <section class="panel" id="monitorPanel">
+    <section class="panel" id="monitorPanel" data-panel="monitor">
       <div class="panel-head">
         <span class="panel-title">Program Monitor</span>
         <div class="panel-tools">
@@ -113,7 +115,7 @@
     </section>
 
     <!-- ---------- TIMELINE ---------- -->
-    <section class="panel" id="timelinePanel">
+    <section class="panel" id="timelinePanel" data-panel="timeline">
       <div class="panel-head">
         <span class="panel-title">Timeline — Sequence 01</span>
         <div class="panel-tools">
@@ -135,7 +137,7 @@
 
   <!-- ---------- RIGHT ---------- -->
   <aside id="rightPanel" class="panel-column">
-    <section class="panel" id="inspectorPanel">
+    <section class="panel" id="inspectorPanel" data-panel="inspector">
       <div class="panel-head">
         <span class="panel-title">Effect Controls / Inspector</span>
       </div>
@@ -144,21 +146,21 @@
       </div>
     </section>
 
-    <section class="panel" id="colorPanel">
+    <section class="panel" id="colorPanel" data-panel="color">
       <div class="panel-head"><span class="panel-title">Lumetri Color</span></div>
       <div class="panel-body" id="colorBody">
         <div class="empty">Pilih klip video.</div>
       </div>
     </section>
 
-    <section class="panel" id="audioPanel">
+    <section class="panel" id="audioPanel" data-panel="audio">
       <div class="panel-head"><span class="panel-title">Audio (Klip)</span></div>
       <div class="panel-body" id="audioBody">
         <div class="empty">Pilih klip audio/video.</div>
       </div>
     </section>
 
-    <section class="panel" id="mixerPanel">
+    <section class="panel" id="mixerPanel" data-panel="mixer">
       <div class="panel-head"><span class="panel-title">Audio Mixer</span></div>
       <div class="panel-body" id="mixerBody"></div>
     </section>
@@ -174,6 +176,10 @@
 
 <!-- ===================== OVERLAYS ===================== -->
 <div id="menuDropdown" class="menu-dropdown hidden"></div>
+<div id="layoutMenu" class="menu-dropdown hidden"></div>
+<div id="panelPicker" class="menu-dropdown hidden"></div>
+<div id="panelPark" class="panel-park" aria-hidden="true"></div>
+<div id="snapGuide" class="snap-guide hidden"></div>
 
 <div id="exportModal" class="modal hidden">
   <div class="modal-card">
