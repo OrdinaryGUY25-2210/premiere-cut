@@ -29,6 +29,68 @@
   }
   function apply() { Renderer.drawFrame(App.playhead); App.emit("clipChanged", App.selectedClip()); }
 
+  function ratioRow(clip) {
+    const wrap = U.el("div", "ins-row");
+    wrap.appendChild(U.el("label", null, "Rasio"));
+    const box = U.el("div", "ins-sub");
+    const t = clip.transform;
+
+    const ratio = (t.scaleX || 1) / (t.scaleY || 1);
+    const sx = document.createElement("input");
+    sx.type = "range"; sx.min = 0.05; sx.max = 4; sx.step = 0.01; sx.value = (t.scaleX || 1);
+    sx.title = "Skala X";
+    sx.addEventListener("pointerdown", () => App.pushUndo());
+    sx.addEventListener("input", () => {
+      t.scaleX = +sx.value;
+      if (t.linkScale !== false) t.scaleY = t.scaleX;
+      t.scale = t.scaleY;
+      apply();
+    });
+    const sy = document.createElement("input");
+    sy.type = "range"; sy.min = 0.05; sy.max = 4; sy.step = 0.01; sy.value = (t.scaleY || 1);
+    sy.title = "Skala Y";
+    sy.addEventListener("pointerdown", () => App.pushUndo());
+    sy.addEventListener("input", () => {
+      t.scaleY = +sy.value;
+      if (t.linkScale !== false) t.scaleX = t.scaleY;
+      t.scale = t.scaleY;
+      apply();
+    });
+
+    const lk = document.createElement("input");
+    lk.type = "checkbox"; lk.checked = (t.linkScale !== false); lk.title = "Kunci rasio (X=Y)";
+    lk.addEventListener("change", () => { t.linkScale = lk.checked; });
+
+    box.appendChild(U.el("span", "val", "X"));
+    box.appendChild(sx);
+    box.appendChild(U.el("span", "val", "Y"));
+    box.appendChild(sy);
+    box.appendChild(U.el("span", "val", "Link"));
+    box.appendChild(lk);
+
+    const sel = document.createElement("select");
+    [["Bebas", "x"], ["1:1", "1:1"], ["16:9", "16:9"], ["9:16", "9:16"], ["4:3", "4:3"], ["3:4", "3:4"], ["2:1", "2:1"], ["1:2", "1:2"], ["16:10", "16:10"], ["10:16", "10:16"], ["5:4", "5:4"], ["4:5", "4:5"], ["21:9", "21:9"]]
+      .forEach((x) => sel.appendChild(new Option(x[0], x[1])));
+    sel.value = "x";
+    sel.addEventListener("change", () => {
+      if (sel.value === "x") return;
+      const p = sel.value.split(":");
+      const w = +p[0], h = +p[1];
+      const s = t.scale || 1;
+      App.pushUndo();
+      t.scaleX = s * (w / h);
+      t.scaleY = s;
+      t.scale = s;
+      I.render(); apply();
+    });
+    box.appendChild(sel);
+
+    const val = U.el("span", "val", (t.scaleX || 1).toFixed(2) + " × " + (t.scaleY || 1).toFixed(2) + " (" + ratio.toFixed(2) + ")");
+    box.appendChild(val);
+    wrap.appendChild(box);
+    return wrap;
+  }
+
   // baris properti yang bisa dianimasikan dengan diamond keyframe
   function propRow(clip, prop, label, min, max, step, getStatic, setStatic, fmt) {
     const t = App.playhead;
@@ -107,7 +169,7 @@
       gt.appendChild(propRow(clip, "opacity", "Opacity", 0, 1, 0.01, () => clip.transform.opacity, (v) => clip.transform.opacity = v, (v) => Math.round(v * 100) + "%"));
       // ratio
       gt.appendChild(ratioRow(clip));
-
+      ib.appendChild(gt);
 
       const gs = group("Kecepatan");
       gs.appendChild(row("Speed", slider(clip.speed || 1, 0.25, 4, 0.05, (v) => { clip.speed = v; apply(); }, () => App.emit("project")), (clip.speed || 1).toFixed(2) + "x"));
@@ -310,29 +372,3 @@
 
   window.Inspector = I;
 })();
-
-function ratioRow(clip){
-  const wrap=U.el('div','ins-row');
-  wrap.appendChild(U.el('label',null,'Rasio'));
-  const box=U.el('div','ins-sub');
-  const sx=document.createElement('input'); sx.type='range'; sx.min=0.05; sx.max=4; sx.step=0.01; sx.value=(clip.transform.scaleX||1);
-  sx.addEventListener('pointerdown',function(){App.pushUndo()});
-  sx.addEventListener('input',function(){clip.transform.scaleX=+sx.value; if(clip.transform.linkScale!==false){clip.transform.scaleY=clip.transform.scaleX; clip.transform.scale=clip.transform.scaleX;} apply(); I.render();});
-  const sy=document.createElement('input'); sy.type='range'; sy.min=0.05; sy.max=4; sy.step=0.01; sy.value=(clip.transform.scaleY||1);
-  sy.addEventListener('pointerdown',function(){App.pushUndo()});
-  sy.addEventListener('input',function(){clip.transform.scaleY=+sy.value; if(clip.transform.linkScale!==false){clip.transform.scaleX=clip.transform.scaleY; clip.transform.scale=clip.transform.scaleY;} apply(); I.render();});
-  const lk=document.createElement('input'); lk.type='checkbox'; lk.checked=(clip.transform.linkScale!==false);
-  lk.addEventListener('change',function(){clip.transform.linkScale=lk.checked; apply();});
-  box.appendChild(sx); box.appendChild(U.el('span',null,'X'));
-  box.appendChild(sy); box.appendChild(U.el('span',null,'Y'));
-  box.appendChild(U.el('span',null,'Link')); box.appendChild(lk);
-  const sel=document.createElement('select');
-  [['Bebas','x'],['1:1','1:1'],['16:9','16:9'],['9:16','9:16'],['4:3','4:3'],['3:4','3:4'],['2:1','2:1'],['1:2','1:2'],['16:10','16:10'],['10:16','10:16'],['5:4','5:4'],['4:5','4:5'],['21:9','21:9']].forEach(function(x){sel.appendChild(new Option(x[0],x[1]));});
-  sel.value='x';
-  sel.addEventListener('change',function(){
-    if(sel.value==='x')return;
-    var p=sel.value.split(':'); var w=+p[0],h=+p[1]; var s=clip.transform.scale||1;
-    App.pushUndo(); clip.transform.scaleX=s*(w/h); clip.transform.scaleY=s; clip.transform.scale=s; I.render(); apply();
-  });
-  box.appendChild(sel); wrap.appendChild(box); return wrap;
-}

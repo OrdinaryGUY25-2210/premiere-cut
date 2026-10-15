@@ -54,9 +54,10 @@
     const fps = +document.getElementById("expFps").value;
     const bitrate = (+document.getElementById("expBitrate").value || 12) * 1e6;
     const withAudio = document.getElementById("expIncludeAudio").checked;
-    if (!mime) { App.status("Browser tidak mendukung MediaRecorder."); return; }
     const fmt = document.getElementById("expFormat");
     X.expExt = fmt && fmt.value === "mp4" ? "mp4" : "webm";
+    const mime = X.pickMimeFor(X.expExt || "webm");
+    if (!mime) { App.status("Browser tidak mendukung MediaRecorder."); return; }
 
     const exp = document.createElement("canvas");
     exp.width = W; exp.height = H;
@@ -72,7 +73,6 @@
     }
 
     X.recorder = null; X.chunks = []; X.cancel = false;
-    const mime = X.pickMimeFor(X.expExt || "webm");
 
     try {
       X.recorder = new MediaRecorder(stream, mime ? { mimeType: mime, videoBitsPerSecond: bitrate } : { videoBitsPerSecond: bitrate });

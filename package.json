@@ -1,0 +1,43 @@
+{
+  "name": "premiere-cut",
+  "productName": "PremiereCut",
+  "version": "1.0.0",
+  "description": "Video editor web (Premiere + CapCut) dibungkus jadi aplikasi desktop",
+  "main": "main.js",
+  "author": "OrdinaryGUY25-2210",
+  "license": "MIT",
+  "type": "commonjs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OrdinaryGUY25-2210/premiere-cut.git"
+  },
+  "scripts": {
+    "start": "electron .",
+    "dist:win": "electron-builder --win nsis",
+    "dist:linux": "electron-builder --linux AppImage",
+    "dist:mac": "electron-builder --mac"
+  },
+  "build": {
+    "appId": "com.ordinaryguy.premierecut",
+    "productName": "PremiereCut",
+    "directories": { "output": "dist" },
+    "files": [
+      "main.js",
+      "index.html",
+      "css/**/*",
+      "js/**/*"
+    ],
+    "win": { "target": ["nsis"] },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "PremiereCut"
+    },
+    "linux": { "target": ["AppImage"] },
+    "mac": { "category": "public.app-category.video" }
+  },
+  "devDependencies": {
+    "electron": "^44.7.2",
+    "electron-builder": "^25.1.8"
+  }
+}

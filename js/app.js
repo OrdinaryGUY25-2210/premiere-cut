@@ -122,6 +122,21 @@
       Timeline.render();
       App.select(clip.id);
       Inspector.render();
+      // regresi rasio: handler harus jalan tanpa error & mengubah skala X/Y
+      let ratioErr = null;
+      const prevOnerr = window.onerror;
+      window.onerror = function (m) { ratioErr = String(m); return false; };
+      const rsel = Array.from(document.querySelectorAll("#inspectorBody select")).find((s) => Array.from(s.options).some((o) => o.value === "21:9"));
+      let ratioApplied = false;
+      if (rsel) {
+        rsel.value = "16:9";
+        rsel.dispatchEvent(new Event("change"));
+        const s = clip.transform.scale;
+        ratioApplied = Math.abs(clip.transform.scaleY - s) < 1e-6 && Math.abs(clip.transform.scaleX - s * (16 / 9)) < 1e-6;
+      }
+      window.onerror = prevOnerr;
+      out.push("ratioSel=" + (!!rsel));
+      out.push("ratioOK=" + (ratioApplied && !ratioErr));
       EffectsPanel.render();
       EffectsPanel.tab = "template"; EffectsPanel.render();
       Playback.seek(2);
